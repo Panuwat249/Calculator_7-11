@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคิดเลขคำนวณบิล 7-11</title>
+    <style>
+        :root {
+            --primary-color: #00853f;
+            --secondary-color: #ffcc00;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        /* แผงแสดงผลและเครื่องคิดเลข */
+        .calc-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .display {
+            background: #222;
+            color: #fff;
+            font-size: 2rem;
+            text-align: right;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-break: break-all;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .btn {
+            background: #e9ecef;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            padding: 15px 0;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:active {
+            background: #cbd3da;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .btn-primary:active {
+            background: #006631;
+        }
+        .btn-accent {
+            background: var(--secondary-color);
+            color: #000;
+        }
+        .btn-accent:active {
+            background: #e6b800;
+        }
+        
+        /* สรุปผลภาพรวม */
+        .summary-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .summary-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .summary-stats span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        /* รายการสินค้าและบิล */
+        .section-title {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 8px;
+        }
+        .item-list, .bill-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .item-row button {
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .bill-box {
+            background: #e6f4ea;
+            border: 1px solid #ceead6;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .bill-header {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .bill-items {
+            font-size: 0.85rem;
+            color: #555;
+            padding-left: 10px;
+        }
+
+        /* Popup Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .modal-content input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-cancel { background: #ccc; }
+        .btn-confirm { background: var(--primary-color); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>คำนวณบิล 7-11 (เป้าหมาย 200.-)</h1>
+
+        <!-- ส่วนเครื่องคิดเลข -->
+        <div class="calc-card">
+            <div class="display" id="display">0</div>
+            <div class="keypad">
+                <button class="btn" onclick="appendNumber('7')">7</button>
+                <button class="btn" onclick="appendNumber('8')">8</button>
+                <button class="btn" onclick="appendNumber('9')">9</button>
+                <button class="btn" onclick="clearDisplay()">C</button>
+                
+                <button class="btn" onclick="appendNumber('4')">4</button>
+                <button class="btn" onclick="appendNumber('5')">5</button>
+                <button class="btn" onclick="appendNumber('6')">6</button>
+                <button class="btn" onclick="deleteNumber()">⌫</button>
+                
+                <button class="btn" onclick="appendNumber('1')">1</button>
+                <button class="btn" onclick="appendNumber('2')">2</button>
+                <button class="btn" onclick="appendNumber('3')">3</button>
+                <button class="btn btn-accent" onclick="openModal()" style="font-size: 1rem;">1 ชิ้น</button>
+                
+                <button class="btn" onclick="appendNumber('0')" style="grid-column: span 2;">0</button>
+                <button class="btn" onclick="appendNumber('.')">.</button>
+                <button class="btn btn-primary" onclick="openModal()">+</button>
+            </div>
+        </div>
+
+        <!-- ส่วนสรุปผลรวม -->
+        <div class="summary-card">
+            <div class="summary-stats">
+                <div>ยอดรวมทั้งหมด: <span id="total-price">0.00</span> บาท</div>
+                <div>ขาดอีก (บิลถัดไป): <span id="remaining-price">200.00</span> บาท</div>
+            </div>
+        </div>
+
+        <!-- รายการสินค้าที่เพิ่มทั้งหมด -->
+        <div class="summary-card">
+            <div class="section-title">รายการสินค้าที่กรอกไว้</div>
+            <div class="item-list" id="raw-item-list">
+                <div style="color: #888; text-align: center; font-size: 0.85rem; padding: 10px;">ยังไม่มีรายการสินค้า</div>
+            </div>
+        </div>
+
+        <!-- การจัดสรรแยกบิล Real-time -->
+        <div class="summary-card">
+            <div class="section-title">การจัดสรรแยกบิล (เป้าหมาย บิลละ 200.-)</div>
+            <div class="bill-list" id="bill-container">
+                <div style="color: #888; text-align: center; font-size: 0.85rem; padding: 10px;">ระบบจะคำนวณแยกบิลให้อัตโนมัติ</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับใส่ชื่อสินค้าและจำนวนชิ้น -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <h3>ข้อมูลสินค้า</h3>
+            <div id="modal-price-text" style="font-size: 0.9rem; color: #666;">ราคา: 0 บาท</div>
+            <input type="text" id="itemNameInput" placeholder="ชื่อสินค้า (เช่น นม, ขนมปัง)">
+            <input type="number" id="itemQtyInput" value="1" min="1" placeholder="จำนวนชิ้น">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn-confirm" onclick="confirmAddItem()">เพิ่มสินค้า</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = "0";
+        let items = []; // เก็บรายการสินค้าทั้งหมด {name, price, qty}
+
+        function updateDisplay() {
+            document.getElementById("display").innerText = currentInput;
+        }
+
+        function appendNumber(num) {
+            if (currentInput === "0" && num !== ".") {
+                currentInput = num;
+            } else {
+                if (num === "." && currentInput.includes(".")) return;
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = "0";
+            updateDisplay();
+        }
+
+        function deleteNumber() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = "0";
+            }
+            updateDisplay();
+        }
+
+        function openModal() {
+            const price = parseFloat(currentInput);
+            if (!price || price <= 0) {
+                alert("กรุณากรอกราคาสินค้าให้ถูกต้องก่อน");
+                return;
+            }
+            document.getElementById("modal-price-text").innerText = `ราคาต่อชิ้น: ${price} บาท`;
+            document.getElementById("itemNameInput").value = "";
+            document.getElementById("itemQtyInput").value = "1";
+            document.getElementById("itemModal").style.display = "flex";
+            document.getElementById("itemNameInput").focus();
+        }
+
+        function closeModal() {
+            document.getElementById("itemModal").style.display = "none";
+        }
+
+        function confirmAddItem() {
+            const price = parseFloat(currentInput);
+            const name = document.getElementById("itemNameInput").value.trim() || "สินค้าทั่วไป";
+            const qty = parseInt(document.getElementById("itemQtyInput").value) || 1;
+
+            if (price > 0 && qty > 0) {
+                items.push({ name, price, qty });
+                clearDisplay();
+                closeModal();
+                calculateAndRender();
+            }
+        }
+
+        function deleteItem(index) {
+            items.splice(index, 1);
+            calculateAndRender();
+        }
+
+        function calculateAndRender() {
+            // 1. แปลงรายการสินค้าทั้งหมดออกมาเป็นชิ้นเดี่ยวๆ เพื่อเอามาจัดใส่บิลแบบ Greedy / Bin Packing คร่าวๆ หรือจัดกลุ่ม
+            let allUnitItems = [];
+            let totalSum = 0;
+
+            items.forEach(item => {
+                totalSum += item.price * item.qty;
+                for (let i = 0; i < item.qty; i++) {
+                    allUnitItems.push({ name: item.name, price: item.price });
+                }
+            });
+
+            // อัปเดตยอดรวมหน้าจอ
+            document.getElementById("total-price").innerText = totalSum.toFixed(2);
+            
+            // คำนวณยอดขาดสำหรับบิลปัจจุบัน
+            let currentBillRemainder = totalSum % 200;
+            let neededForNext = currentBillRemainder === 0 ? (totalSum === 0 ? 200 : 0) : (200 - currentBillRemainder);
+            document.getElementById("remaining-price").innerText = neededForNext.toFixed(2);
+
+            // แสดงรายการดิบ
+            let rawListHtml = "";
+            if (items.length === 0) {
+                rawListHtml = `<div style="color: #888; text-align: center; font-size: 0.85rem; padding: 10px;">ยังไม่มีรายการสินค้า</div>`;
+            } else {
+                items.forEach((item, index) => {
+                    rawListHtml += `
+                        <div class="item-row">
+                            <span><b>${item.name}</b> (${item.price}฿ × ${item.qty} ชิ้น) = ${(item.price * item.qty)}฿</span>
+                            <button onclick="deleteItem(${index})">ลบ</button>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById("raw-item-list").innerHTML = rawListHtml;
+
+            // 2. จัดสรรแยกบิล (เป้าหมายบิลละ 200 บาท)
+            // เรียงลำดับสินค้าจากแพงไปถูก เพื่อช่วยจัดสรรลงบิลได้ง่ายขึ้น
+            allUnitItems.sort((a, b) => b.price - a.price);
+
+            let bills = [];
+            let currentBill = { items: [], total: 0 };
+
+            allUnitItems.forEach(unitItem => {
+                // ถ้าใส่ชิ้นนี้แล้วเกิน 200 ไปเยอะ หรือถ้าบิลปัจจุบันมีค่าแล้ว และชิ้นนี้ทำให้เกิน 200 ลองดูว่าควรปัดไปบิลใหม่ไหม
+                // เพื่อให้แต่ละบิล >= 200 น้อยที่สุด ให้พยายามเติมบิลปัจจุบันให้ถึง 200 ก่อน
+                currentBill.items.push(unitItem);
+                currentBill.total += unitItem.price;
+
+                if (currentBill.total >= 200) {
+                    bills.push(currentBill);
+                    currentBill = { items: [], total: 0 };
+                }
+            });
+
+            // ถ้ายังมีสินค้าค้างอยู่ในบิลสุดท้ายที่ยังไม่ครบ 200
+            if (currentBill.items.length > 0) {
+                bills.push(currentBill);
+            }
+
+            // เรนเดอร์ผลการแยกบิล
+            let billHtml = "";
+            if (bills.length === 0) {
+                billHtml = `<div style="color: #888; text-align: center; font-size: 0.85rem; padding: 10px;">ระบบจะคำนวณแยกบิลให้อัตโนมัติ</div>`;
+            } else {
+                bills.forEach((bill, bIndex) => {
+                    // รวมกลุ่มชื่อสินค้าในบิลเดียวกันเพื่อให้อ่านง่าย (เช่น นม 3 ขวด)
+                    let summaryMap = {};
+                    bill.items.forEach(bi => {
+                        if (!summaryMap[bi.name + "_" + bi.price]) {
+                            summaryMap[bi.name + "_" + bi.price] = { name: bi.name, price: bi.price, count: 0 };
+                        }
+                        summaryMap[bi.name + "_" + bi.price].count += 1;
+                    });
+
+                    let itemDescList = [];
+                    for (let key in summaryMap) {
+                        let obj = summaryMap[key];
+                        itemDescList.push(`${obj.name} (${obj.price}฿) จำนวน ${obj.count} ชิ้น`);
+                    }
+
+                    let statusText = "";
+                    if (bill.total >= 200) {
+                        statusText = `<span style="color: #00853f;">(ครบ 200 แล้ว ✅ เกิน ${bill.total - 200}฿)</span>`;
+                    } else {
+                        statusText = `<span style="color: #d9381e;">(ยังขาดอีก ${200 - bill.total}฿)</span>`;
+                    }
+
+                    billHtml += `
+                        <div class="bill-box">
+                            <div class="bill-header">
+                                <span>บิลที่ ${bIndex + 1} (รวม ${bill.total} บาท)</span>
+                                ${statusText}
+                            </div>
+                            <div class="bill-items">
+                                • ${itemDescList.join('<br>• ')}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById("bill-container").innerHTML = billHtml;
+        }
+    </script>
+</body>
+</html>
