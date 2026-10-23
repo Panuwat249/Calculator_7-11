@@ -1,26 +1,11 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เครื่องคิดเลขแยกบิล 7-11</title>
     <style>
         :root {
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --primary: #10b981;
-            --primary-hover: #059669;
-            --accent: #f59e0b;
-            --danger: #ef4444;
-            --border: #e2e8f0;
-            --display-bg: #0f172a;
-            --display-text: #38bdf8;
-            --bill-bg: #f0fdf4;
-            --bill-border: #bbf7d0;
-        }
-        [data-theme="dark"] {
             --bg: #0f172a;
             --card-bg: #1e293b;
             --text: #f8fafc;
@@ -34,6 +19,21 @@
             --display-text: #38bdf8;
             --bill-bg: #064e3b;
             --bill-border: #065f46;
+        }
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --display-bg: #0f172a;
+            --display-text: #38bdf8;
+            --bill-bg: #f0fdf4;
+            --bill-border: #bbf7d0;
         }
         * {
             box-sizing: border-box;
@@ -56,18 +56,40 @@
             align-items: center;
             margin-bottom: 12px;
         }
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .app-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
         h1 {
-            font-size: 1.1rem;
-            color: var(--primary);
+            font-size: 1.05rem;
+            color: var(--text);
             font-weight: 700;
+            line-height: 1.2;
+        }
+        .credit {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
         .theme-btn {
             background: var(--card-bg);
             border: 1px solid var(--border);
             color: var(--text);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
             font-weight: 600;
         }
@@ -252,8 +274,16 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>เครื่องคิดเลขแยกบิล 7-11</h1>
-            <button class="theme-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 โหมดมืด</button>
+            <div class="title-container">
+                <div class="app-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
+                </div>
+                <div>
+                    <h1>เครื่องคิดเลขแยกบิล 7-11</h1>
+                    <div class="credit">By Panuwat Mawin</div>
+                </div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeToggleBtn">☀️ โหมดสว่าง</button>
         </div>
 
         <div class="card">
@@ -328,7 +358,7 @@
     <script>
         let currentInput = "0";
         let items = [];
-        let isDarkMode = false;
+        let isDarkMode = true;
 
         function toggleTheme() {
             isDarkMode = !isDarkMode;
