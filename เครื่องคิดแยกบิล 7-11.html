@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7-11 Smart Bill Splitter Pro</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --display-bg: #0f172a;
+            --display-text: #38bdf8;
+            --bill-bg: #f0fdf4;
+            --bill-border: #bbf7d0;
+        }
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #10b981;
+            --primary-hover: #34d399;
+            --accent: #fbbf24;
+            --danger: #f87171;
+            --border: #334155;
+            --display-bg: #020617;
+            --display-text: #38bdf8;
+            --bill-bg: #064e3b;
+            --bill-border: #065f46;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .theme-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .target-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .target-input {
+            width: 90px;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            text-align: right;
+            font-weight: bold;
+        }
+        .display {
+            background: var(--display-bg);
+            color: var(--display-text);
+            font-size: 2.2rem;
+            text-align: right;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            min-height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .btn {
+            background: var(--border);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            padding: 14px 0;
+            font-weight: bold;
+            color: var(--text);
+            cursor: pointer;
+        }
+        .btn:active {
+            opacity: 0.7;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #000;
+        }
+        .summary-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .summary-stats span {
+            color: var(--primary);
+        }
+        .section-title {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-list, .bill-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+        .item-row button {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .bill-box {
+            background: var(--bill-bg);
+            border: 1px solid var(--bill-border);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .bill-header {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .bill-items {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            padding-left: 8px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid var(--border);
+        }
+        .modal-content input {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-cancel { background: var(--border); color: var(--text); }
+        .btn-confirm { background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>7-11 Smart Bill Splitter Pro</h1>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 โหมดมืด</button>
+        </div>
+
+        <div class="card">
+            <div class="target-row">
+                <span>เป้าหมายราคาต่อบิล (บาท):</span>
+                <input type="number" id="targetPriceInput" class="target-input" value="200" min="1" oninput="calculateAndRender()">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="display" id="display">0</div>
+            <div class="keypad">
+                <button class="btn" onclick="appendNumber('7')">7</button>
+                <button class="btn" onclick="appendNumber('8')">8</button>
+                <button class="btn" onclick="appendNumber('9')">9</button>
+                <button class="btn" onclick="clearDisplay()">C</button>
+                
+                <button class="btn" onclick="appendNumber('4')">4</button>
+                <button class="btn" onclick="appendNumber('5')">5</button>
+                <button class="btn" onclick="appendNumber('6')">6</button>
+                <button class="btn" onclick="deleteNumber()">⌫</button>
+                
+                <button class="btn" onclick="appendNumber('1')">1</button>
+                <button class="btn" onclick="appendNumber('2')">2</button>
+                <button class="btn" onclick="appendNumber('3')">3</button>
+                <button class="btn btn-accent" onclick="openModal(1)" style="font-size: 0.9rem;">+1ชิ้น</button>
+                
+                <button class="btn" onclick="appendNumber('0')" style="grid-column: span 2;">0</button>
+                <button class="btn" onclick="appendNumber('.')">.</button>
+                <button class="btn btn-primary" onclick="openModal()">+</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="summary-stats">
+                <div>ยอดซื้อรวม: <span id="total-price">0.00</span> ฿</div>
+                <div>บิลถัดไปขาดอีก: <span id="remaining-price">200.00</span> ฿</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <span>รายการสินค้าทั้งหมด</span>
+                <button onclick="clearAllItems()" style="background:none; border:none; color:var(--danger); font-size:0.8rem; cursor:pointer;">ลบทั้งหมด</button>
+            </div>
+            <div class="item-list" id="raw-item-list">
+                <div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ยังไม่มีรายการสินค้า</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">การจัดสรรแยกบิลอัจฉริยะ (Real-time)</div>
+            <div class="bill-list" id="bill-container">
+                <div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ระบบจะคำนวณแยกบิลให้อัตโนมัติ</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <h3>เพิ่มสินค้า</h3>
+            <div id="modal-price-text" style="font-size: 0.85rem; color: var(--text-secondary);">ราคา: 0 บาท</div>
+            <input type="text" id="itemNameInput" placeholder="ชื่อสินค้า (เช่น นม, ขนม)">
+            <input type="number" id="itemQtyInput" value="1" min="1" placeholder="จำนวนชิ้น">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn-confirm" onclick="confirmAddItem()">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentInput = "0";
+        let items = [];
+        let isDarkMode = false;
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            document.getElementById('themeToggleBtn').innerText = isDarkMode ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
+        }
+
+        function updateDisplay() {
+            document.getElementById("display").innerText = currentInput;
+        }
+
+        function appendNumber(num) {
+            if (currentInput === "0" && num !== ".") {
+                currentInput = num;
+            } else {
+                if (num === "." && currentInput.includes(".")) return;
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = "0";
+            updateDisplay();
+        }
+
+        function deleteNumber() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = "0";
+            }
+            updateDisplay();
+        }
+
+        function openModal(defaultQty = 1) {
+            const price = parseFloat(currentInput);
+            if (!price || price <= 0) {
+                alert("กรุณากรอกราคาสินค้าก่อน");
+                return;
+            }
+            document.getElementById("modal-price-text").innerText = `ราคาต่อชิ้น: ${price} บาท`;
+            document.getElementById("itemNameInput").value = "";
+            document.getElementById("itemQtyInput").value = defaultQty;
+            document.getElementById("itemModal").style.display = "flex";
+            document.getElementById("itemNameInput").focus();
+        }
+
+        function closeModal() {
+            document.getElementById("itemModal").style.display = "none";
+        }
+
+        function confirmAddItem() {
+            const price = parseFloat(currentInput);
+            const name = document.getElementById("itemNameInput").value.trim() || "สินค้าทั่วไป";
+            const qty = parseInt(document.getElementById("itemQtyInput").value) || 1;
+
+            if (price > 0 && qty > 0) {
+                items.push({ name, price, qty });
+                clearDisplay();
+                closeModal();
+                calculateAndRender();
+            }
+        }
+
+        function deleteItem(index) {
+            items.splice(index, 1);
+            calculateAndRender();
+        }
+
+        function clearAllItems() {
+            if (confirm("ต้องการลบสินค้าทั้งหมดใช่หรือไม่?")) {
+                items = [];
+                calculateAndRender();
+            }
+        }
+
+        function getBestSubset(availableItems, target) {
+            let bestIndices = [];
+            let minSum = Infinity;
+            let sorted = availableItems.map((item, idx) => ({...item, origIdx: idx})).sort((a, b) => b.price - a.price);
+
+            let totalAvailable = sorted.reduce((s, x) => s + x.price, 0);
+            if (totalAvailable < target) {
+                return { indices: sorted.map(x => x.origIdx), sum: totalAvailable };
+            }
+
+            function backtrack(startIndex, currentSum, path) {
+                if (currentSum >= target) {
+                    if (currentSum < minSum) {
+                        minSum = currentSum;
+                        bestIndices = [...path];
+                    }
+                    return;
+                }
+                for (let i = startIndex; i < sorted.length; i++) {
+                    backtrack(i + 1, currentSum + sorted[i].price, [...path, sorted[i].origIdx]);
+                }
+            }
+
+            backtrack(0, 0, []);
+
+            if (bestIndices.length === 0) {
+                return { indices: sorted.map(x => x.origIdx), sum: totalAvailable };
+            }
+
+            return { indices: bestIndices, sum: minSum };
+        }
+
+        function calculateAndRender() {
+            const target = parseFloat(document.getElementById("targetPriceInput").value) || 200;
+            
+            let allUnitItems = [];
+            let totalSum = 0;
+
+            items.forEach(item => {
+                totalSum += item.price * item.qty;
+                for (let i = 0; i < item.qty; i++) {
+                    allUnitItems.push({ name: item.name, price: item.price });
+                }
+            });
+
+            document.getElementById("total-price").innerText = totalSum.toFixed(2);
+
+            let bills = [];
+            let remainingUnits = [...allUnitItems];
+
+            while (remainingUnits.length > 0) {
+                let result = getBestSubset(remainingUnits, target);
+                let billItems = result.indices.map(idx => remainingUnits[idx]);
+                let billTotal = result.sum;
+
+                bills.push({ items: billItems, total: billTotal });
+
+                let sortedIndices = [...result.indices].sort((a, b) => b - a);
+                sortedIndices.forEach(idx => {
+                    remainingUnits.splice(idx, 1);
+                });
+            }
+
+            let lastBill = bills[bills.length - 1];
+            let neededForNext = 0;
+            if (!lastBill || lastBill.total >= target) {
+                neededForNext = totalSum === 0 ? target : 0;
+            } else {
+                neededForNext = target - lastBill.total;
+            }
+            document.getElementById("remaining-price").innerText = neededForNext.toFixed(2);
+
+            let rawListHtml = "";
+            if (items.length === 0) {
+                rawListHtml = `<div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ยังไม่มีรายการสินค้า</div>`;
+            } else {
+                items.forEach((item, index) => {
+                    rawListHtml += `
+                        <div class="item-row">
+                            <span><b>${item.name}</b> (${item.price}฿ × ${item.qty}) = ${(item.price * item.qty)}฿</span>
+                            <button onclick="deleteItem(${index})">ลบ</button>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById("raw-item-list").innerHTML = rawListHtml;
+
+            let billHtml = "";
+            if (bills.length === 0) {
+                billHtml = `<div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ระบบจะคำนวณแยกบิลให้อัตโนมัติ</div>`;
+            } else {
+                bills.forEach((bill, bIndex) => {
+                    let summaryMap = {};
+                    bill.items.forEach(bi => {
+                        if (!summaryMap[bi.name + "_" + bi.price]) {
+                            summaryMap[bi.name + "_" + bi.price] = { name: bi.name, price: bi.price, count: 0 };
+                        }
+                        summaryMap[bi.name + "_" + bi.price].count += 1;
+                    });
+
+                    let itemDescList = [];
+                    for (let key in summaryMap) {
+                        let obj = summaryMap[key];
+                        itemDescList.push(`${obj.name} (${obj.price}฿) × ${obj.count}`);
+                    }
+
+                    let statusText = "";
+                    if (bill.total >= target) {
+                        statusText = `<span style="color: var(--primary);">(ครบแล้ว ✅ เกิน ${bill.total - target}฿)</span>`;
+                    } else {
+                        statusText = `<span style="color: var(--danger);">(ยังขาดอีก ${target - bill.total}฿)</span>`;
+                    }
+
+                    billHtml += `
+                        <div class="bill-box">
+                            <div class="bill-header">
+                                <span>บิลที่ ${bIndex + 1} (${bill.total} ฿)</span>
+                                ${statusText}
+                            </div>
+                            <div class="bill-items">
+                                • ${itemDescList.join('<br>• ')}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById("bill-container").innerHTML = billHtml;
+        }
+    </script>
+</body>
+</html>
