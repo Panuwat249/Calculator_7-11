@@ -256,7 +256,7 @@
             color: var(--text-secondary);
             padding-left: 8px;
         }
-        /* Compare UI styles (Fixed overflow) */
+        /* Compare UI styles */
         .compare-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -273,10 +273,27 @@
             gap: 6px;
             min-width: 0;
         }
+        .compare-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .compare-box h3 {
             font-size: 0.85rem;
-            text-align: center;
             color: var(--primary);
+        }
+        .clear-mini-btn {
+            background: var(--border);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .clear-mini-btn:hover {
+            background: var(--danger);
+            color: #fff;
         }
         .input-group {
             display: flex;
@@ -444,10 +461,16 @@
         <!-- ส่วนที่ 2: เปรียบเทียบสินค้า A vs B -->
         <div id="view-compare" class="view-section">
             <div class="card">
-                <div class="section-title">เปรียบเทียบความคุ้มค่า (A vs B)</div>
+                <div class="section-title">
+                    <span>เปรียบเทียบความคุ้มค่า (A vs B)</span>
+                    <button onclick="clearAllCompare()" style="background:var(--danger); border:none; color:#fff; font-size:0.75rem; padding:3px 8px; border-radius:4px; cursor:pointer;">ล้างค่าทั้งหมด</button>
+                </div>
                 <div class="compare-grid">
                     <div class="compare-box">
-                        <h3>สินค้า A</h3>
+                        <div class="compare-header-row">
+                            <h3>สินค้า A</h3>
+                            <button class="clear-mini-btn" onclick="clearBox('A')">ล้าง</button>
+                        </div>
                         <div class="input-group">
                             <label>ราคา (บาท)</label>
                             <input type="number" id="priceA" placeholder="0" oninput="calculateCompare()">
@@ -458,7 +481,10 @@
                         </div>
                     </div>
                     <div class="compare-box">
-                        <h3>สินค้า B</h3>
+                        <div class="compare-header-row">
+                            <h3>สินค้า B</h3>
+                            <button class="clear-mini-btn" onclick="clearBox('B')">ล้าง</button>
+                        </div>
                         <div class="input-group">
                             <label>ราคา (บาท)</label>
                             <input type="number" id="priceB" placeholder="0" oninput="calculateCompare()">
@@ -582,6 +608,25 @@
                 items = [];
                 calculateAndRender();
             }
+        }
+
+        function clearBox(box) {
+            if (box === 'A') {
+                document.getElementById("priceA").value = "";
+                document.getElementById("sizeA").value = "";
+            } else if (box === 'B') {
+                document.getElementById("priceB").value = "";
+                document.getElementById("sizeB").value = "";
+            }
+            calculateCompare();
+        }
+
+        function clearAllCompare() {
+            document.getElementById("priceA").value = "";
+            document.getElementById("sizeA").value = "";
+            document.getElementById("priceB").value = "";
+            document.getElementById("sizeB").value = "";
+            calculateCompare();
         }
 
         function getBestSubset(availableItems, target) {
