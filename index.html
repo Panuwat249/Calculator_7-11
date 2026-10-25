@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เครื่องคิดเลขแยกบิล 7-11</title>
+    <title>เครื่องคิดเลขแยกบิล & เทียบความคุ้มค่า 7-11</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -54,7 +54,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .title-container {
             display: flex;
@@ -73,13 +73,13 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         h1 {
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: var(--text);
             font-weight: 700;
             line-height: 1.2;
         }
         .credit {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             font-weight: 500;
         }
@@ -93,10 +93,39 @@
             cursor: pointer;
             font-weight: 600;
         }
-        .container {
+        /* Tab Menu */
+        .nav-tabs {
             display: flex;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 12px;
+            gap: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        .view-section {
+            display: none;
             flex-direction: column;
             gap: 12px;
+        }
+        .view-section.active {
+            display: flex;
         }
         .card {
             background: var(--card-bg);
@@ -104,6 +133,7 @@
             border-radius: 12px;
             border: 1px solid var(--border);
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            width: 100%;
         }
         .target-row {
             display: flex;
@@ -226,6 +256,67 @@
             color: var(--text-secondary);
             padding-left: 8px;
         }
+        /* Compare UI styles (Fixed overflow) */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            width: 100%;
+        }
+        .compare-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .compare-box h3 {
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--primary);
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .input-group label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .input-group input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 0.9rem;
+            text-align: right;
+            font-weight: bold;
+        }
+        .result-card {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .result-line {
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .text-green {
+            color: #10b981 !important;
+        }
+        .text-red {
+            color: #f87171 !important;
+        }
         .modal {
             display: none;
             position: fixed;
@@ -272,7 +363,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="header">
             <div class="title-container">
                 <div class="app-icon">
@@ -286,62 +377,107 @@
             <button class="theme-btn" onclick="toggleTheme()" id="themeToggleBtn">☀️ โหมดสว่าง</button>
         </div>
 
-        <div class="card">
-            <div class="target-row">
-                <span>เป้าหมายราคาต่อบิล (บาท):</span>
-                <input type="number" id="targetPriceInput" class="target-input" value="200" min="1" oninput="calculateAndRender()">
+        <!-- Tab Menu -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('splitter', this)">แยกบิล 7-11</button>
+            <button class="tab-btn" onclick="switchTab('compare', this)">เทียบความคุ้มค่า (A/B)</button>
+        </div>
+
+        <!-- ส่วนที่ 1: เครื่องคิดเลขแยกบิล -->
+        <div id="view-splitter" class="view-section active">
+            <div class="card">
+                <div class="target-row">
+                    <span>เป้าหมายราคาต่อบิล (บาท):</span>
+                    <input type="number" id="targetPriceInput" class="target-input" value="200" min="1" oninput="calculateAndRender()">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="display" id="display">0</div>
+                <div class="keypad">
+                    <button class="btn" onclick="appendNumber('7')">7</button>
+                    <button class="btn" onclick="appendNumber('8')">8</button>
+                    <button class="btn" onclick="appendNumber('9')">9</button>
+                    <button class="btn" onclick="clearDisplay()">C</button>
+                    
+                    <button class="btn" onclick="appendNumber('4')">4</button>
+                    <button class="btn" onclick="appendNumber('5')">5</button>
+                    <button class="btn" onclick="appendNumber('6')">6</button>
+                    <button class="btn" onclick="deleteNumber()">⌫</button>
+                    
+                    <button class="btn" onclick="appendNumber('1')">1</button>
+                    <button class="btn" onclick="appendNumber('2')">2</button>
+                    <button class="btn" onclick="appendNumber('3')">3</button>
+                    <button class="btn btn-accent" onclick="openModal(1)" style="font-size: 0.9rem;">+1ชิ้น</button>
+                    
+                    <button class="btn" onclick="appendNumber('0')" style="grid-column: span 2;">0</button>
+                    <button class="btn" onclick="appendNumber('.')">.</button>
+                    <button class="btn btn-primary" onclick="openModal()">+</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-stats">
+                    <div>ยอดซื้อรวม: <span id="total-price">0.00</span> ฿</div>
+                    <div>บิลถัดไปขาดอีก: <span id="remaining-price">200.00</span> ฿</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">
+                    <span>รายการสินค้าทั้งหมด</span>
+                    <button onclick="clearAllItems()" style="background:none; border:none; color:var(--danger); font-size:0.8rem; cursor:pointer;">ลบทั้งหมด</button>
+                </div>
+                <div class="item-list" id="raw-item-list">
+                    <div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ยังไม่มีรายการสินค้า</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">การจัดสรรแยกบิลอัจฉริยะ (Real-time)</div>
+                <div class="bill-list" id="bill-container">
+                    <div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ระบบจะคำนวณแยกบิลให้อัตโนมัติ</div>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="display" id="display">0</div>
-            <div class="keypad">
-                <button class="btn" onclick="appendNumber('7')">7</button>
-                <button class="btn" onclick="appendNumber('8')">8</button>
-                <button class="btn" onclick="appendNumber('9')">9</button>
-                <button class="btn" onclick="clearDisplay()">C</button>
-                
-                <button class="btn" onclick="appendNumber('4')">4</button>
-                <button class="btn" onclick="appendNumber('5')">5</button>
-                <button class="btn" onclick="appendNumber('6')">6</button>
-                <button class="btn" onclick="deleteNumber()">⌫</button>
-                
-                <button class="btn" onclick="appendNumber('1')">1</button>
-                <button class="btn" onclick="appendNumber('2')">2</button>
-                <button class="btn" onclick="appendNumber('3')">3</button>
-                <button class="btn btn-accent" onclick="openModal(1)" style="font-size: 0.9rem;">+1ชิ้น</button>
-                
-                <button class="btn" onclick="appendNumber('0')" style="grid-column: span 2;">0</button>
-                <button class="btn" onclick="appendNumber('.')">.</button>
-                <button class="btn btn-primary" onclick="openModal()">+</button>
-            </div>
-        </div>
+        <!-- ส่วนที่ 2: เปรียบเทียบสินค้า A vs B -->
+        <div id="view-compare" class="view-section">
+            <div class="card">
+                <div class="section-title">เปรียบเทียบความคุ้มค่า (A vs B)</div>
+                <div class="compare-grid">
+                    <div class="compare-box">
+                        <h3>สินค้า A</h3>
+                        <div class="input-group">
+                            <label>ราคา (บาท)</label>
+                            <input type="number" id="priceA" placeholder="0" oninput="calculateCompare()">
+                        </div>
+                        <div class="input-group">
+                            <label>ขนาด / ปริมาณ</label>
+                            <input type="number" id="sizeA" placeholder="0" oninput="calculateCompare()">
+                        </div>
+                    </div>
+                    <div class="compare-box">
+                        <h3>สินค้า B</h3>
+                        <div class="input-group">
+                            <label>ราคา (บาท)</label>
+                            <input type="number" id="priceB" placeholder="0" oninput="calculateCompare()">
+                        </div>
+                        <div class="input-group">
+                            <label>ขนาด / ปริมาณ</label>
+                            <input type="number" id="sizeB" placeholder="0" oninput="calculateCompare()">
+                        </div>
+                    </div>
+                </div>
 
-        <div class="card">
-            <div class="summary-stats">
-                <div>ยอดซื้อรวม: <span id="total-price">0.00</span> ฿</div>
-                <div>บิลถัดไปขาดอีก: <span id="remaining-price">200.00</span> ฿</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="section-title">
-                <span>รายการสินค้าทั้งหมด</span>
-                <button onclick="clearAllItems()" style="background:none; border:none; color:var(--danger); font-size:0.8rem; cursor:pointer;">ลบทั้งหมด</button>
-            </div>
-            <div class="item-list" id="raw-item-list">
-                <div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ยังไม่มีรายการสินค้า</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="section-title">การจัดสรรแยกบิลอัจฉริยะ (Real-time)</div>
-            <div class="bill-list" id="bill-container">
-                <div style="color: var(--text-secondary); text-align: center; font-size: 0.8rem; padding: 10px;">ระบบจะคำนวณแยกบิลให้อัตโนมัติ</div>
+                <div class="result-card" id="compareResult">
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">กรุณากรอกข้อมูลราคาและขนาดทั้ง 2 สินค้าเพื่อวิเคราะห์</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal เพิ่มสินค้า -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
             <h3>เพิ่มสินค้า</h3>
@@ -364,6 +500,18 @@
             isDarkMode = !isDarkMode;
             document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
             document.getElementById('themeToggleBtn').innerText = isDarkMode ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
+        }
+
+        function switchTab(tabName, btnElement) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            if (tabName === 'splitter') {
+                document.getElementById('view-splitter').classList.add('active');
+            } else if (tabName === 'compare') {
+                document.getElementById('view-compare').classList.add('active');
+            }
+            btnElement.classList.add('active');
         }
 
         function updateDisplay() {
@@ -563,6 +711,46 @@
                 });
             }
             document.getElementById("bill-container").innerHTML = billHtml;
+        }
+
+        function calculateCompare() {
+            const pA = parseFloat(document.getElementById("priceA").value);
+            const sA = parseFloat(document.getElementById("sizeA").value);
+            const pB = parseFloat(document.getElementById("priceB").value);
+            const sB = parseFloat(document.getElementById("sizeB").value);
+            const resCard = document.getElementById("compareResult");
+
+            if (!pA || !sA || !pB || !sB || sA <= 0 || sB <= 0) {
+                resCard.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.85rem;">กรุณากรอกข้อมูลราคาและขนาดให้ครบถ้วนเพื่อวิเคราะห์</div>`;
+                return;
+            }
+
+            const unitA = pA / sA;
+            const unitB = pB / sB;
+
+            let textA = "";
+            let textB = "";
+
+            if (unitA < unitB) {
+                const diffPercent = ((unitB - unitA) / unitB) * 100;
+                textA = `<div class="result-line text-green">✨ สินค้า A คุ้มกว่า (ถูกกว่า ${diffPercent.toFixed(1)}%)</div>`;
+                textB = `<div class="result-line text-red">❌ สินค้า B แพงกว่า ${diffPercent.toFixed(1)}%</div>`;
+            } else if (unitB < unitA) {
+                const diffPercent = ((unitA - unitB) / unitA) * 100;
+                textA = `<div class="result-line text-red">❌ สินค้า A แพงกว่า ${diffPercent.toFixed(1)}%</div>`;
+                textB = `<div class="result-line text-green">✨ สินค้า B คุ้มกว่า (ถูกกว่า ${diffPercent.toFixed(1)}%)</div>`;
+            } else {
+                textA = `<div class="result-line" style="color: var(--accent);">ความคุ้มค่าเท่ากันทั้งคู่</div>`;
+                textB = `<div class="result-line" style="color: var(--accent);">ความคุ้มค่าเท่ากันทั้งคู่</div>`;
+            }
+
+            resCard.innerHTML = `
+                ${textA}
+                ${textB}
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">
+                    (A: ${unitA.toFixed(2)} ฿/หน่วย | B: ${unitB.toFixed(2)} ฿/หน่วย)
+                </div>
+            `;
         }
     </script>
 </body>
